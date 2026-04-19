@@ -56,8 +56,14 @@ export default function Logo({ size = 'lg' }: { size?: 'sm' | 'md' | 'lg' }) {
           }}>
           ÁGUA PAY
         </div>
-        <div className={`${s.sub} text-sky-300/70 tracking-[0.3em] uppercase font-medium mt-1`}>
-          Soluções Hídricas
+        <div className={`${s.sub} tracking-[0.2em] uppercase font-black mt-1`}
+          style={{
+            background: 'linear-gradient(135deg, #f97316, #fb923c)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+          RECEBA &amp; PAGUE
         </div>
       </div>
     </div>

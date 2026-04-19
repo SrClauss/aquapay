@@ -62,14 +62,14 @@ export default function Home() {
             <div className="flex flex-col items-center gap-6">
               <Logo size="lg" />
               <p className="text-sky-300/60 text-center text-sm max-w-xs leading-relaxed">
-                Plataforma inteligente para gestão de recursos hídricos e otimização de outorgas
+                Plataforma inteligente <span className="text-white font-bold">de</span> gestão de recursos hídricos
               </p>
             </div>
 
             {/* Tagline card */}
             <div className="glass rounded-2xl px-8 py-4 text-center max-w-sm">
               <p className="text-sky-200 text-xs tracking-widest uppercase font-semibold">
-                💧 Economize nos seus recursos hídricos
+                &quot;Sua Carteira Hídrica de Recebimentos e Pagamentos&quot;
               </p>
             </div>
 
@@ -112,7 +112,7 @@ export default function Home() {
               >
                 <span className="relative z-10 flex items-center justify-center gap-3 text-sky-100">
                   <span>🛒</span>
-                  <span>Quero COMPRAR</span>
+                  <span>Quero PAGAR</span>
                 </span>
                 <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
               </button>
@@ -137,7 +137,7 @@ export default function Home() {
 
             {/* Footer */}
             <p className="text-sky-400/30 text-xs text-center mt-4">
-              © 2024 Água Pay — Todos os direitos reservados
+              © 2026 Água Pay — Todos os direitos reservados
             </p>
           </div>
         )}
