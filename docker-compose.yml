@@ -6,11 +6,7 @@ services:
     expose:
       - "3000"
     environment:
-      - NODE_ENV=development
-    volumes:
-      - .:/app:delegated
-      - /app/node_modules
-    command: npm run dev
+      - NODE_ENV=production
 
   nginx:
     image: nginx:stable-alpine
