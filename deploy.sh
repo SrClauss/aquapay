@@ -79,8 +79,8 @@ ok "Arquivos sincronizados em ${REMOTE_DIR}"
 log "Conectando ao servidor remoto e executando docker compose..."
 ssh "${REMOTE_USER}@${REMOTE_HOST}" bash <<EOF
   set -e
-  echo "[remoto] Entrando em ${REMOTE_DIR}/frontend"
-  cd "${REMOTE_DIR}/frontend"
+  echo "[remoto] Entrando em ${REMOTE_DIR}"
+  cd "${REMOTE_DIR}"
 
   echo "[remoto] Parando containers anteriores (se existirem)..."
   docker compose down --remove-orphans || true

@@ -1,524 +1,578 @@
-'use client';
-
-import { useState, useRef, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import Logo from './components/Logo';
-import ServiceCard from './components/ServiceCard';
-import WaterBubbles from './components/WaterBubbles';
+import ContactForm from './ContactForm';
+import type { Metadata } from 'next';
 
-type Screen = 'initial' | 'services' | 'upload' | 'confirmation';
+export const metadata: Metadata = {
+  title: 'Água Pay — Carteira Hídrica Inteligente',
+  description:
+    'Plataforma inteligente de carteira hídrica de recebimentos e pagamentos. Até 50% de desconto na Cobrança pelo Uso da Água Medida.',
+};
 
-export default function Home() {
-  const [screen, setScreen] = useState<Screen>('initial');
-  const [selectedService, setSelectedService] = useState<number | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [email, setEmail] = useState('');
-  const [showDevMsg, setShowDevMsg] = useState(false);
-  const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+/* ------------------------------------------------------------------ */
+/*  Static blog preview data (replaced by API in production)          */
+/* ------------------------------------------------------------------ */
+const BLOG_PREVIEW = [
+  {
+    id: 1,
+    slug: 'o-que-e-outorga-de-agua',
+    title: 'O que é Outorga de Água e por que ela importa?',
+    summary:
+      'Entenda como funciona o direito de uso de recursos hídricos no Brasil e quais usuários são obrigados a obter outorga.',
+    date: '2026-04-28',
+    emoji: '💧',
+  },
+  {
+    id: 2,
+    slug: 'como-obter-desconto-na-cobranca',
+    title: 'Como obter até 50% de desconto na cobrança pelo uso da água',
+    summary:
+      'Descubra os mecanismos legais que permitem reduzir drasticamente os valores cobrados pelo uso de recursos hídricos.',
+    date: '2026-05-05',
+    emoji: '💰',
+  },
+  {
+    id: 3,
+    slug: 'usuarios-outorgados-quem-sao',
+    title: 'Usuários Outorgados: quem são e quais direitos possuem',
+    summary:
+      'Pessoas físicas e empresas especificadas em lei podem ser usuárias outorgadas. Saiba se você se enquadra nessa categoria.',
+    date: '2026-05-12',
+    emoji: '📋',
+  },
+];
 
-  const navigate = useCallback((target: Screen) => {
-    setScreen(target);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+/* ------------------------------------------------------------------ */
+/*  Small reusable components                                          */
+/* ------------------------------------------------------------------ */
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setFileName(file.name);
-  };
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2
+      className="text-3xl md:text-4xl font-black tracking-wide text-center"
+      style={{
+        background: 'linear-gradient(135deg, #38bdf8, #7dd3fc, #e0f2fe)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+      }}
+    >
+      {children}
+    </h2>
+  );
+}
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) setFileName(file.name);
-  };
+function InfoCard({
+  emoji,
+  title,
+  body,
+}: {
+  emoji: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="glass-card rounded-2xl p-6 flex flex-col gap-3">
+      <span className="text-4xl">{emoji}</span>
+      <h3 className="text-white font-black text-lg leading-snug">{title}</h3>
+      <p className="text-sky-300/70 text-sm leading-relaxed">{body}</p>
+    </div>
+  );
+}
 
-  const handleRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setRipple({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-    setTimeout(() => setRipple(null), 700);
-  };
+function BlogCard({
+  post,
+}: {
+  post: (typeof BLOG_PREVIEW)[number];
+}) {
+  return (
+    <Link
+      href={`/blog/${post.slug}`}
+      className="glass-card rounded-2xl p-6 flex flex-col gap-3 hover:border-sky-400/50 transition-all duration-300 group"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-3xl">{post.emoji}</span>
+        <time className="text-sky-400/50 text-xs">{post.date}</time>
+      </div>
+      <h3 className="text-white font-bold text-base leading-snug group-hover:text-sky-200 transition-colors">
+        {post.title}
+      </h3>
+      <p className="text-sky-300/60 text-sm leading-relaxed">{post.summary}</p>
+      <span className="text-sky-400 text-xs font-semibold mt-auto">
+        Ler mais →
+      </span>
+    </Link>
+  );
+}
 
-  // Register service worker
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .catch(() => {/* SW registration failed silently */});
-    }
-  }, []);
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
+export default function LandingPage() {
   return (
     <div className="relative min-h-screen flex flex-col" style={{ zIndex: 1 }}>
-      <WaterBubbles />
+      {/* =========================================================== */}
+      {/* NAV                                                         */}
+      {/* =========================================================== */}
+      <nav
+        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+        style={{
+          background: 'rgba(10,22,40,0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(14,165,233,0.15)',
+        }}
+      >
+        <Logo size="sm" />
+        <div className="flex items-center gap-4">
+          <Link
+            href="/blog"
+            className="text-sky-300 hover:text-white text-sm font-semibold transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
+            href="/plataforma"
+            className="btn-water px-5 py-2 rounded-xl text-sm font-bold transition-all duration-300"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(14,165,233,0.85), rgba(6,182,212,0.85))',
+              border: '1px solid rgba(14,165,233,0.6)',
+              boxShadow: '0 4px 15px rgba(14,165,233,0.3)',
+            }}
+          >
+            Acessar Plataforma
+          </Link>
+        </div>
+      </nav>
 
-      {/* Main content */}
-      <div className="relative flex-1 flex flex-col" style={{ zIndex: 2 }}>
-        {/* ======== SCREEN 1: INITIAL ======== */}
-        {screen === 'initial' && (
-          <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-10 screen-enter">
-            {/* Logo */}
-            <div className="flex flex-col items-center gap-6">
-              <Logo size="lg" />
-              <p className="text-sky-300/60 text-center text-sm max-w-xs leading-relaxed">
-                Plataforma inteligente <span className="text-white font-bold">de</span> gestão de recursos hídricos
-              </p>
-            </div>
+      {/* =========================================================== */}
+      {/* HERO                                                        */}
+      {/* =========================================================== */}
+      <section className="flex flex-col items-center justify-center px-6 py-24 gap-10 text-center screen-enter">
+        <Logo size="lg" />
 
-            {/* Tagline card */}
-            <div className="glass rounded-2xl px-8 py-4 text-center max-w-sm">
-              <p className="text-sky-200 text-xs tracking-widest uppercase font-semibold">
-                &quot;Sua Carteira Hídrica de Recebimentos e Pagamentos&quot;
-              </p>
-            </div>
+        <div className="flex flex-col gap-4 max-w-2xl">
+          <h1 className="text-4xl md:text-6xl font-black text-white leading-tight text-glow-white">
+            Economize até{' '}
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #f97316, #fb923c)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              50%
+            </span>{' '}
+            na Cobrança pelo Uso da Água
+          </h1>
+          <p className="text-sky-300/70 text-lg leading-relaxed">
+            Plataforma inteligente de{' '}
+            <strong className="text-sky-200">carteira hídrica</strong> de
+            Recebimentos &amp; Pagamentos para Usuários Outorgados de Recursos
+            Hídricos.
+          </p>
+        </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-4 w-full max-w-sm">
-              {/* Quero RECEBER */}
-              <button
-                onClick={() => navigate('services')}
-                className="relative overflow-hidden group w-full py-5 px-6 rounded-2xl font-black text-xl tracking-wide uppercase transition-all duration-300 animate-fade-in-up"
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/plataforma"
+            className="relative overflow-hidden group px-10 py-5 rounded-2xl font-black text-xl tracking-wide uppercase transition-all duration-300"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(14,165,233,0.85), rgba(6,182,212,0.85))',
+              border: '1px solid rgba(14,165,233,0.6)',
+              boxShadow:
+                '0 8px 32px rgba(14,165,233,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(10px)',
+              color: 'white',
+            }}
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              <span>💧</span>
+              <span>Quero meu Desconto</span>
+            </span>
+            <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          </Link>
+
+          <a
+            href="https://wa.me/5500000000000"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative overflow-hidden group px-10 py-5 rounded-2xl font-black text-xl tracking-wide uppercase transition-all duration-300"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '2px solid rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(10px)',
+              color: 'white',
+            }}
+          >
+            <span className="flex items-center gap-3">
+              <span>💬</span>
+              <span>Fale Conosco</span>
+            </span>
+          </a>
+        </div>
+
+        {/* Stat pills */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4">
+          {[
+            { label: 'Desconto Real', value: 'Até 50%' },
+            { label: 'Estados Atendidos', value: '26 + DF' },
+            { label: 'Cadastro', value: '100% Grátis' },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              className="glass rounded-2xl px-6 py-3 flex flex-col items-center gap-1"
+            >
+              <span
+                className="text-2xl font-black"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(14,165,233,0.85), rgba(6,182,212,0.85))',
-                  border: '1px solid rgba(14,165,233,0.6)',
-                  boxShadow: '0 8px 32px rgba(14,165,233,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
+                  background: 'linear-gradient(135deg, #38bdf8, #7dd3fc)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
                 }}
               >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  <span>💰</span>
-                  <span>Quero RECEBER</span>
-                </span>
-                {/* Shimmer */}
-                <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              </button>
-
-              {/* Quero COMPRAR */}
-              <button
-                onClick={() => {
-                  setShowDevMsg(true);
-                  setTimeout(() => setShowDevMsg(false), 3500);
-                }}
-                className="relative overflow-hidden group w-full py-5 px-6 rounded-2xl font-black text-xl tracking-wide uppercase transition-all duration-300 animate-fade-in-up delay-200"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '2px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                }}
-              >
-                <span className="relative z-10 flex items-center justify-center gap-3 text-sky-100">
-                  <span>🛒</span>
-                  <span>Quero PAGAR</span>
-                </span>
-                <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-              </button>
+                {value}
+              </span>
+              <span className="text-sky-400/60 text-xs uppercase tracking-widest">
+                {label}
+              </span>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Dev message toast */}
-            {showDevMsg && (
-              <div
-                className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 glass rounded-2xl px-6 py-4 animate-fade-in"
-                style={{
-                  border: '1px solid rgba(251,191,36,0.4)',
-                  background: 'rgba(120,53,15,0.8)',
-                  backdropFilter: 'blur(20px)',
-                }}
-              >
-                <p className="text-amber-300 font-bold text-sm flex items-center gap-2">
-                  <span>🚧</span>
-                  <span>Funcionalidade em desenvolvimento</span>
-                </p>
-              </div>
-            )}
+      {/* =========================================================== */}
+      {/* O QUE É O ÁGUA PAY?                                        */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 max-w-5xl mx-auto w-full">
+        <SectionTitle>O que é o Água Pay?</SectionTitle>
+        <div
+          className="rounded-3xl p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center w-full"
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(14,165,233,0.2)',
+            boxShadow: '0 8px 48px rgba(14,165,233,0.1)',
+          }}
+        >
+          <div className="text-7xl">💧</div>
+          <div className="flex flex-col gap-4 text-center md:text-left">
+            <p className="text-sky-100 text-lg leading-relaxed">
+              Somos uma{' '}
+              <strong className="text-white">
+                plataforma inteligente de carteira hídrica
+              </strong>{' '}
+              de <strong className="text-orange-400">RECEBIMENTOS</strong> &amp;{' '}
+              <strong className="text-orange-400">PAGAMENTOS</strong>, que
+              proporciona{' '}
+              <strong className="text-sky-300">DESCONTOS de VERDADE</strong> na
+              Cobrança pelo Uso da Água Medida de pessoas físicas em geral e
+              empresas especificadas em lei.
+            </p>
+            <Link
+              href="/plataforma"
+              className="self-center md:self-start btn-water px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-widest"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(14,165,233,0.85), rgba(6,182,212,0.85))',
+                border: '1px solid rgba(14,165,233,0.6)',
+                boxShadow: '0 4px 15px rgba(14,165,233,0.3)',
+              }}
+            >
+              Começar agora →
+            </Link>
+          </div>
+        </div>
+      </section>
 
-            {/* Footer */}
-            <p className="text-sky-400/30 text-xs text-center mt-4">
-              © 2026 Água Pay — Todos os direitos reservados
+      {/* =========================================================== */}
+      {/* SOBRE O ÁGUA PAY                                            */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 max-w-5xl mx-auto w-full">
+        <SectionTitle>Sobre o Água Pay</SectionTitle>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+          {[
+            {
+              emoji: '💬',
+              title: 'Atendimento Via WhatsApp',
+              body: 'Receba orientação rápida e pratique diretamente pelo WhatsApp com nosso time especializado em recursos hídricos.',
+            },
+            {
+              emoji: '📈',
+              title: 'Análise Personalizada',
+              body: 'Avaliação técnica e financeira do seu caso, com foco em reduzir custos da cobrança pelo uso da água medida.',
+            },
+            {
+              emoji: '⚙️',
+              title: 'Processo 100% Digital',
+              body: 'Envie documentos, acompanhe cada etapa e receba propostas sem precisar sair de casa.',
+            },
+            {
+              emoji: '🛡️',
+              title: 'Segurança e Transparência',
+              body: 'Suas informações são tratadas com segurança documental e você acompanha a proposta em todos os passos.',
+            },
+          ].map((item) => (
+            <div key={item.title} className="glass-card rounded-3xl p-6 flex flex-col gap-4 border border-slate-800 bg-slate-950/80">
+              <span className="text-4xl">{item.emoji}</span>
+              <h3 className="text-white font-bold text-lg">{item.title}</h3>
+              <p className="text-sky-300/70 text-sm leading-relaxed">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================== */}
+      {/* QUEM PODE USAR?                                            */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 max-w-5xl mx-auto w-full">
+        <SectionTitle>Quem pode usar o Água Pay?</SectionTitle>
+        <p className="text-sky-300/70 text-center text-base max-w-2xl leading-relaxed">
+          Todas as <strong className="text-sky-200">pessoas físicas</strong> em
+          geral e certas{' '}
+          <strong className="text-sky-200">empresas</strong> que são{' '}
+          <strong className="text-orange-400">USUÁRIAS OUTORGADAS</strong> de
+          Recursos Hídricos da União e dos 26 Estados + Distrito Federal.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          <InfoCard
+            emoji="🌾"
+            title="Produtores Rurais"
+            body="Irrigantes, criadores e produtores com captação de água superficial ou subterrânea outorgada."
+          />
+          <InfoCard
+            emoji="🏭"
+            title="Indústrias"
+            body="Empresas industriais que utilizam recursos hídricos como insumo ou para resfriamento de processos."
+          />
+          <InfoCard
+            emoji="🏗️"
+            title="Saneamento & Infraestrutura"
+            body="Concessionárias, empresas de saneamento e prestadores de serviço público com outorga federal ou estadual."
+          />
+          <InfoCard
+            emoji="⛏️"
+            title="Mineração"
+            body="Mineradoras com uso expressivo de água em lavra, beneficiamento ou controle de poeira."
+          />
+          <InfoCard
+            emoji="🐟"
+            title="Aquicultura"
+            body="Piscicultores e aquicultores com captação de água para criação de organismos aquáticos."
+          />
+          <InfoCard
+            emoji="👤"
+            title="Pessoas Físicas"
+            body="Qualquer pessoa física que possua outorga de uso de recursos hídricos e pague pela sua utilização."
+          />
+        </div>
+      </section>
+
+      {/* =========================================================== */}
+      {/* OBJETIVO                                                    */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 w-full"
+        style={{
+          background: 'rgba(14,165,233,0.05)',
+          borderTop: '1px solid rgba(14,165,233,0.1)',
+          borderBottom: '1px solid rgba(14,165,233,0.1)',
+        }}
+      >
+        <div className="max-w-5xl mx-auto w-full flex flex-col items-center gap-10">
+          <SectionTitle>Qual o objetivo do Água Pay?</SectionTitle>
+          <div className="flex flex-col items-center gap-6 text-center max-w-3xl">
+            <div
+              className="text-8xl md:text-9xl font-black"
+              style={{
+                background: 'linear-gradient(135deg, #f97316, #fb923c, #fbbf24)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: 'none',
+                filter: 'drop-shadow(0 0 30px rgba(249,115,22,0.4))',
+              }}
+            >
+              50%
+            </div>
+            <p className="text-sky-100 text-xl leading-relaxed">
+              Ofertar até{' '}
+              <strong className="text-orange-400">50% de DESCONTO DE VERDADE</strong>{' '}
+              para Usuários Outorgados de Recursos Hídricos em relação à
+              Cobrança pelo Uso da Água Medida.
+            </p>
+            <p className="text-sky-300/60 text-base leading-relaxed">
+              Nossa plataforma analisa sua outorga, identifica oportunidades de
+              redução e conduz o processo de forma 100% digital e segura.
             </p>
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* ======== SCREEN 2: SERVICES ======== */}
-        {screen === 'services' && (
-          <div className="flex-1 flex flex-col px-4 py-8 gap-6 screen-enter">
-            {/* Header */}
-            <div className="flex items-center gap-4 px-2">
-              <button
-                onClick={() => navigate('initial')}
-                className="glass rounded-xl p-2.5 text-sky-300 hover:text-white transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <Logo size="sm" />
-            </div>
-
-            {/* Title */}
-            <div className="text-center px-4">
-              <h2 className="text-2xl font-black text-white text-glow-white mb-2">
-                Selecione o Serviço
-              </h2>
-              <p className="text-sky-300/60 text-sm">
-                Escolha o tipo de documento para obter seu desconto
-              </p>
-            </div>
-
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 gap-4 max-w-lg mx-auto w-full">
-              <ServiceCard
-                icon="📋"
-                title="Descontos nas OUTORGAS de Água Medida"
-                description="Reduza os custos da sua outorga de direito de uso de recursos hídricos. Nossa análise especializada encontra o desconto ideal para você."
-                buttonText="Clique aqui e ENVIE sua OUTORGA..."
-                onClick={() => { setSelectedService(1); navigate('upload'); }}
-                delay={100}
-              />
-              <ServiceCard
-                icon="📊"
-                title="Descontos nos MONITORAMENTOS das Águas"
-                description="Economize nos custos de monitoramento da qualidade e quantidade das suas águas com nossa consultoria especializada."
-                buttonText="Clique aqui e ENVIE uma FOTO..."
-                onClick={() => { setSelectedService(2); navigate('upload'); }}
-                delay={200}
-              />
-              <ServiceCard
-                icon="📄"
-                title="Descontos nas COBRANÇAS pelo Uso..."
-                description="Reduza as cobranças pelo uso de recursos hídricos. Analisamos sua situação e encontramos o melhor caminho para economia."
-                buttonText='Clique aqui e ENVIE seu "BOLETO"...'
-                onClick={() => { setSelectedService(3); navigate('upload'); }}
-                delay={300}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ======== SCREEN 3: UPLOAD + EMAIL ======== */}
-        {screen === 'upload' && (
-          <div className="flex-1 flex flex-col px-4 py-8 gap-6 screen-enter">
-            {/* Header */}
-            <div className="flex items-center gap-4 px-2">
-              <button
-                onClick={() => navigate('services')}
-                className="glass rounded-xl p-2.5 text-sky-300 hover:text-white transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <Logo size="sm" />
-            </div>
-
-            {/* Upload Section */}
-            <div className="max-w-lg mx-auto w-full flex flex-col gap-4">
-              <div className="text-center">
-                <h2 className="text-xl font-black text-white text-glow-white mb-1">
-                  Envie seu Documento
-                </h2>
-                <p className="text-sky-300/60 text-sm">
-                  {selectedService === 1 && 'Envie sua outorga para análise'}
-                  {selectedService === 2 && 'Envie uma foto do monitoramento'}
-                  {selectedService === 3 && 'Envie seu boleto para análise'}
-                </p>
-              </div>
-
-              {/* Upload Area */}
-              <div
-                className={`upload-area rounded-2xl p-8 flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 ${isDragOver ? 'drag-over' : ''}`}
-                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                onDragLeave={() => setIsDragOver(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-
-                {fileName ? (
-                  <>
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
-                      style={{
-                        background: 'rgba(14,165,233,0.15)',
-                        border: '1px solid rgba(14,165,233,0.4)',
-                      }}>
-                      ✅
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sky-200 font-bold text-sm mb-1">Arquivo selecionado!</p>
-                      <p className="text-sky-400/70 text-xs max-w-[200px] truncate">{fileName}</p>
-                    </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setFileName(null); if(fileInputRef.current) fileInputRef.current.value = ''; }}
-                      className="text-sky-400/60 text-xs hover:text-sky-300 transition-colors"
-                    >
-                      Trocar arquivo
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl animate-water-drop"
-                      style={{
-                        background: 'rgba(14,165,233,0.1)',
-                        border: '1px solid rgba(14,165,233,0.25)',
-                      }}>
-                      📂
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sky-200 font-semibold text-sm mb-1">
-                        Arraste e solte aqui
-                      </p>
-                      <p className="text-sky-400/50 text-xs">ou clique para selecionar</p>
-                    </div>
-                    <p className="text-sky-400/40 text-xs">PDF, imagens ou documentos</p>
-                  </>
-                )}
-              </div>
-
-              {/* Continue button */}
-              <button
-                onClick={() => fileName && navigate('confirmation')}
-                disabled={!fileName}
-                className={`btn-water w-full py-3 rounded-xl font-bold tracking-wide text-sm transition-all duration-300 ${fileName ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}`}
-              >
-                {fileName ? 'Continuar' : 'Continuar (selecione um arquivo)'}
-              </button>
-            </div>
-
-            {/* EMAIL SECTION */}
-            <div className="max-w-lg mx-auto w-full">
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.3)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                }}
-              >
-                {/* Red header stripe */}
-                <div
-                  className="px-6 py-4"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(220,38,38,0.7), rgba(185,28,28,0.7))',
-                    borderBottom: '1px solid rgba(239,68,68,0.3)',
-                  }}
-                >
-                  <h3 className="text-white font-black text-base tracking-wide flex items-center gap-2">
-                    <span>📧</span>
-                    <span>Adicionar todas as suas contas de e-mail</span>
-                  </h3>
-                </div>
-
-                <div className="px-6 py-5 flex flex-col gap-5">
-                  {/* Provider icons */}
-                  <div className="flex items-center justify-around">
-                    {[
-                      { icon: '🟦', label: 'Microsoft 365' },
-                      { icon: '🔴', label: 'Gmail' },
-                      { icon: '💜', label: 'Yahoo!' },
-                      { icon: '⬜', label: 'iCloud' },
-                    ].map(({ icon, label }) => (
-                      <div key={label} className="flex flex-col items-center gap-2">
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                          style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            backdropFilter: 'blur(10px)',
-                          }}
-                        >
-                          {icon}
-                        </div>
-                        <span className="text-sky-300/60 text-[10px] text-center leading-tight max-w-[56px]">
-                          {label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Info text */}
-                  <p className="text-sky-300/60 text-xs leading-relaxed text-center">
-                    O Outlook suporta o Microsoft 365, Gmail, Yahoo, iCloud e IMAP.{' '}
-                    <span className="text-sky-400 underline cursor-pointer">Saiba mais</span>{' '}
-                    <span className="text-sky-400 underline cursor-pointer">Mais</span>
-                  </p>
-
-                  {/* Email input */}
-                  <div className="flex flex-col gap-3">
-                    <input
-                      type="email"
-                      placeholder="Digite seu endereço de e-mail"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3.5 rounded-xl text-sm text-white placeholder-sky-400/40 outline-none transition-all duration-300"
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        backdropFilter: 'blur(10px)',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.6)';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    />
-
-                    {/* Login button */}
-                    <button
-                      onClick={(e) => {
-                        handleRipple(e);
-                        setTimeout(() => navigate('confirmation'), 300);
-                      }}
-                      className="relative overflow-hidden w-full py-4 px-6 rounded-xl font-black text-base tracking-widest uppercase text-white transition-all duration-300 flex items-center justify-center gap-3"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(239,68,68,0.9), rgba(220,38,38,0.9))',
-                        border: '1px solid rgba(239,68,68,0.5)',
-                        boxShadow: '0 6px 24px rgba(239,68,68,0.35)',
-                      }}
-                    >
-                      {ripple && (
-                        <span
-                          className="absolute animate-ripple rounded-full bg-white/30"
-                          style={{
-                            width: 100,
-                            height: 100,
-                            left: ripple.x - 50,
-                            top: ripple.y - 50,
-                          }}
-                        />
-                      )}
-                      <span>📨</span>
-                      <span>LOGIN COM E-MAIL</span>
-                      <span className="text-red-200">→</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ======== SCREEN 4: CONFIRMATION ======== */}
-        {screen === 'confirmation' && (
-          <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-8 screen-enter">
-            {/* Logo small */}
-            <Logo size="md" />
-
-            {/* Success card */}
+      {/* =========================================================== */}
+      {/* COMO FUNCIONA                                               */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 max-w-5xl mx-auto w-full">
+        <SectionTitle>Como funciona?</SectionTitle>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+          {[
+            {
+              step: '01',
+              emoji: '📋',
+              title: 'Envie sua Outorga',
+              body: 'Faça upload do documento de outorga ou da cobrança pelo uso da água.',
+            },
+            {
+              step: '02',
+              emoji: '🔍',
+              title: 'Análise Especializada',
+              body: 'Nossa equipe especializada analisa os dados e identifica o desconto aplicável.',
+            },
+            {
+              step: '03',
+              emoji: '💡',
+              title: 'Proposta de Desconto',
+              body: 'Você recebe uma proposta clara com o percentual de desconto conquistado.',
+            },
+            {
+              step: '04',
+              emoji: '✅',
+              title: 'Economia Real',
+              body: 'Aprove e passe a pagar menos na cobrança pelo uso dos seus recursos hídricos.',
+            },
+          ].map(({ step, emoji, title, body }) => (
             <div
-              className="w-full max-w-sm rounded-3xl p-8 flex flex-col items-center gap-6 text-center"
-              style={{
-                background: 'rgba(255,255,255,0.07)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                border: '1px solid rgba(14,165,233,0.3)',
-                boxShadow: '0 8px 48px rgba(14,165,233,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
-              }}
+              key={step}
+              className="glass-card rounded-2xl p-6 flex flex-col gap-3 relative overflow-hidden"
             >
-              {/* Success icon with ripple */}
-              <div className="relative">
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-5xl animate-water-drop"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(6,182,212,0.1))',
-                    border: '2px solid rgba(14,165,233,0.4)',
-                    boxShadow: '0 0 40px rgba(14,165,233,0.3)',
-                  }}
-                >
-                  💧
-                </div>
-                {/* Pulse rings */}
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="absolute inset-0 rounded-full border border-sky-400/20"
-                    style={{
-                      animation: `ripple ${1 + i * 0.4}s ease-out ${i * 0.3}s infinite`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Heading */}
-              <div className="flex flex-col gap-3">
-                <h2
-                  className="text-2xl font-black tracking-wide text-glow"
-                  style={{
-                    background: 'linear-gradient(135deg, #38bdf8, #7dd3fc)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  RECEBEMOS SEUS DOCUMENTOS
-                </h2>
-
-                <div
-                  className="px-4 py-3 rounded-xl"
-                  style={{
-                    background: 'rgba(14,165,233,0.08)',
-                    border: '1px solid rgba(14,165,233,0.2)',
-                  }}
-                >
-                  <p className="text-sky-200 text-sm font-semibold leading-relaxed">
-                    &ldquo;ESTAMOS ANALISANDO QUANTO DE DESCONTO VOCÊ GANHOU&rdquo;
-                  </p>
-                </div>
-              </div>
-
-              {/* Alert banner */}
-              <div
-                className="w-full px-6 py-4 rounded-2xl animate-glow"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(6,182,212,0.1))',
-                  border: '2px solid rgba(14,165,233,0.5)',
-                }}
+              <span
+                className="absolute -top-3 -right-2 text-7xl font-black opacity-10 select-none"
+                style={{ color: '#0ea5e9' }}
               >
-                <p className="text-sky-200 font-black text-xl tracking-[0.4em]">
-                  AGUARDE!!!
-                </p>
-                <p className="text-sky-400/60 text-xs mt-1">
-                  Você receberá um retorno em breve
-                </p>
-              </div>
-
-              {/* Lead creation indicator */}
-              <div className="flex items-center gap-2 text-sky-400/60 text-xs">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span>Lead criado com sucesso</span>
-              </div>
+                {step}
+              </span>
+              <span className="text-3xl">{emoji}</span>
+              <h3 className="text-white font-black text-base">{title}</h3>
+              <p className="text-sky-300/60 text-sm leading-relaxed">{body}</p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Back to start */}
-            <button
-              onClick={() => {
-                setScreen('initial');
-                setFileName(null);
-                setEmail('');
-                setSelectedService(null);
-              }}
-              className="glass rounded-xl px-6 py-3 text-sky-400/70 text-sm hover:text-sky-200 transition-all duration-300 hover:border-sky-400/40 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span>Voltar ao início</span>
-            </button>
+      {/* =========================================================== */}
+      {/* BLOG PREVIEW                                                */}
+      {/* =========================================================== */}
+      <section className="px-6 py-20 flex flex-col items-center gap-10 max-w-5xl mx-auto w-full">
+        <div className="flex flex-col items-center gap-3">
+          <SectionTitle>Blog &amp; Notícias</SectionTitle>
+          <p className="text-sky-300/60 text-sm">
+            Fique por dentro das novidades sobre recursos hídricos e outorgas
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {BLOG_PREVIEW.map((post) => (
+            <BlogCard key={post.id} post={post} />
+          ))}
+        </div>
+
+        <Link
+          href="/blog"
+          className="glass rounded-2xl px-10 py-4 font-bold text-sky-300 hover:text-white hover:border-sky-400/50 transition-all duration-300 text-sm uppercase tracking-widest"
+          style={{ border: '1px solid rgba(14,165,233,0.25)' }}
+        >
+          Ver todos os artigos →
+        </Link>
+      </section>
+
+      {/* =========================================================== */}
+      {/* CONTATO / CTA                                              */}
+      {/* =========================================================== */}
+      <section
+        id="contato"
+        className="px-6 py-24 flex flex-col items-center gap-10 w-full"
+        style={{
+          background:
+            'linear-gradient(180deg, transparent 0%, rgba(14,165,233,0.08) 50%, transparent 100%)',
+        }}
+      >
+        <div className="max-w-7xl mx-auto w-full grid gap-10 lg:grid-cols-[1.2fr_0.8fr] items-start">
+          <div className="flex flex-col gap-6">
+            <SectionTitle>Fale conosco</SectionTitle>
+            <p className="text-sky-300/70 text-lg leading-relaxed max-w-3xl">
+              Entre em contato pelo WhatsApp ou Instagram e envie sua mensagem para receber a melhor proposta de desconto na Cobrança pelo Uso da Água.
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <a
+                href="https://wa.me/5500000000000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 transition hover:border-sky-400"
+              >
+                <p className="text-3xl">💬</p>
+                <p className="mt-4 text-white font-bold">WhatsApp</p>
+                <p className="mt-2 text-slate-400 text-sm">Atendimento direto e rápido no WhatsApp.</p>
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 transition hover:border-pink-400"
+              >
+                <p className="text-3xl">📸</p>
+                <p className="mt-4 text-white font-bold">Instagram</p>
+                <p className="mt-2 text-slate-400 text-sm">Fale conosco pelo Instagram e acompanhe nossas novidades.</p>
+              </a>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div>
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================== */}
+      {/* FOOTER                                                      */}
+      {/* =========================================================== */}
+      <footer
+        className="px-6 py-10 flex flex-col items-center gap-4"
+        style={{
+          borderTop: '1px solid rgba(14,165,233,0.15)',
+          background: 'rgba(10,22,40,0.6)',
+        }}
+      >
+        <Logo size="sm" />
+        <nav className="flex flex-wrap justify-center gap-6 text-sky-400/60 text-sm">
+          <Link href="/" className="hover:text-sky-300 transition-colors">
+            Início
+          </Link>
+          <Link href="/blog" className="hover:text-sky-300 transition-colors">
+            Blog
+          </Link>
+          <Link href="/plataforma" className="hover:text-sky-300 transition-colors">
+            Plataforma
+          </Link>
+          <a
+            href="https://wa.me/5500000000000"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-sky-300 transition-colors"
+          >
+            Contato
+          </a>
+        </nav>
+        <p className="text-sky-400/30 text-xs text-center">
+          © 2026 Água Pay — Todos os direitos reservados.
+          <br />
+          Plataforma regulada pela legislação de recursos hídricos (Lei 9.433/97).
+        </p>
+      </footer>
     </div>
   );
 }

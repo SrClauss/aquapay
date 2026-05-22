@@ -33,6 +33,37 @@ blog/
 | POST | `/posts` | Cria novo post |
 | PUT | `/posts/{slug}` | Atualiza post existente |
 | DELETE | `/posts/{slug}` | Remove post |
+| POST | `/auth/login` | Autentica e retorna token JWT |
+| GET | `/auth/me` | Retorna dados do usuário logado |
+| POST | `/users` | Cria novo usuário (admin) |
+| GET | `/users` | Lista usuários (admin) |
+| DELETE | `/users/{id}` | Remove usuário (admin) |
+| POST | `/leads` | Cria lead público |
+| GET | `/leads` | Lista leads (admin) |
+| PATCH | `/leads/{id}/read` | Marca lead como lido (admin) |
+| POST | `/upload/image` | Upload de imagem para MinIO (admin) |
+
+### MinIO
+
+As variáveis de ambiente são:
+
+- `MINIO_ENDPOINT` — endpoint do MinIO (ex: `minio:9000`)
+- `MINIO_ACCESS_KEY` — usuário do MinIO
+- `MINIO_SECRET_KEY` — senha do MinIO
+- `MINIO_BUCKET` — bucket público (`aquapay-media`)
+- `MINIO_SECURE` — `true` ou `false`
+- `MEDIA_URL` — URL pública base para os arquivos enviados
+
+O script de inicialização do bucket está em `scripts/init_minio.sh`.
+
+### Seed de administrador
+
+Defina as variáveis de ambiente `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD` e execute:
+
+```bash
+cd blog
+python seed_admin.py
+```
 
 ### Parâmetros de listagem (`GET /posts`)
 
