@@ -21,6 +21,7 @@ export default function AdminLeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   useEffect(() => {
     const token = getAdminToken();
@@ -94,6 +95,7 @@ export default function AdminLeadsPage() {
                 <th className="px-4 py-3">Telefone</th>
                 <th className="px-4 py-3">Origem</th>
                 <th className="px-4 py-3">Lido</th>
+                <th className="px-4 py-3">Mensagem</th>
                 <th className="px-4 py-3">Ação</th>
               </tr>
             </thead>
@@ -105,6 +107,14 @@ export default function AdminLeadsPage() {
                   <td className="px-4 py-4">{lead.phone}</td>
                   <td className="px-4 py-4">{lead.source}</td>
                   <td className="px-4 py-4">{lead.read ? 'Sim' : 'Não'}</td>
+                  <td className="px-4 py-4">
+                    <button
+                      onClick={() => setSelectedLead(lead)}
+                      className="rounded-2xl bg-sky-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white hover:bg-sky-500 transition"
+                    >
+                      Ver
+                    </button>
+                  </td>
                   <td className="px-4 py-4">
                     {!lead.read ? (
                       <button
@@ -123,6 +133,41 @@ export default function AdminLeadsPage() {
           </table>
         </div>
       </main>
+
+      {/* Modal de mensagem */}
+      {selectedLead && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-white">{selectedLead.name}</h2>
+                <p className="text-sm text-slate-400">{selectedLead.email} · {selectedLead.phone}</p>
+              </div>
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="text-slate-400 hover:text-white transition text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <p className="whitespace-pre-wrap text-slate-200 leading-relaxed">{selectedLead.message}</p>
+            {!selectedLead.read && (
+              <button
+                className="mt-6 w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.15em] text-slate-950 hover:bg-emerald-400 transition"
+                onClick={() => { markAsRead(selectedLead.id); setSelectedLead(null); }}
+              >
+                Marcar como lido
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
