@@ -16,9 +16,9 @@ services:
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=aquapay-media
       - MINIO_SECURE=false
-      - MEDIA_URL=http://localhost:8080/media/
+      - MEDIA_URL=https://aguapay.com.br/media/
       - DATABASE_URL=sqlite:////data/blog.db
-      - ALLOWED_ORIGINS=http://localhost,http://localhost:3000,http://localhost:8080
+      - ALLOWED_ORIGINS=http://localhost,http://localhost:3000,https://aguapay.com.br,https://www.aguapay.com.br
     volumes:
       - blog_data:/data
     restart: unless-stopped
@@ -44,8 +44,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
 volumes:
   blog_data:
