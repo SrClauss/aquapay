@@ -1,13 +1,14 @@
 'use client';
 
+import { use } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminHeader from '../../components/AdminHeader';
 import { getAdminToken, getApiPath, getAuthHeaders, removeAdminToken } from '@/lib/adminAuth';
 
-export default function EditPostPage({ params }: { params: { slug: string } }) {
+export default function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
-  const { slug } = params;
+  const { slug } = use(params);
 
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
@@ -54,11 +55,11 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
     loadPost();
   }, [router, slug]);
 
-  const uploadHero = async (file: File) => {
+  const uploadHero = async (file: File): Promise<string> => {
     const token = getAdminToken();
     if (!token) {
       router.push('/admin/login');
-      return;
+      throw new Error('Não autenticado.');
     }
 
     const formData = new FormData();
@@ -76,6 +77,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
 
     const body = await response.json();
     setHeroUrl(body.url);
+    return body.url;
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -85,8 +87,9 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
     setLoading(true);
 
     try {
+      let finalHeroUrl = heroUrl;
       if (heroImage) {
-        await uploadHero(heroImage);
+        finalHeroUrl = await uploadHero(heroImage);
       }
       const response = await fetch(getApiPath(`/posts/${slug}`), {
         method: 'PUT',
@@ -98,12 +101,23 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
           title,
           summary,
           content,
-          hero_image_url: heroUrl || null,
+          hero_image_url: finalHeroUrl || null,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao atualizar post.');
+        let msg = 'Falha ao atualizar post.';
+        try {
+          const body = await response.json();
+          if (Array.isArray(body?.detail)) {
+            msg = body.detail.map((e: { loc: string[]; msg: string }) =>
+              `${e.loc.slice(1).join('.')}: ${e.msg}`
+            ).join(' | ');
+          } else if (typeof body?.detail === 'string') {
+            msg = body.detail;
+          }
+        } catch {/* ignore */}
+        throw new Error(msg);
       }
 
       setSuccess('Post atualizado com sucesso.');
