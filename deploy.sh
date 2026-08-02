@@ -5,7 +5,7 @@ set -e
 #  Configurações
 # ─────────────────────────────────────────────
 REMOTE_USER="root"
-REMOTE_HOST="72.60.144.249"
+REMOTE_HOST="179.198.107.199"
 REMOTE_DIR="/srv/aquapay"
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 

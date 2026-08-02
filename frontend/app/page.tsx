@@ -154,8 +154,8 @@ export default function LandingPage() {
         <Logo size="lg" />
 
         <div className="flex flex-col gap-4 max-w-2xl">
-          <h1 className="text-4xl md:text-6xl font-black text-white leading-tight text-glow-white">
-            Economize até{' '}
+          <h1 className="text-3xl md:text-5xl font-black text-white leading-tight text-glow-white">
+            Tenha DESCONTOS de até{' '}
             <span
               style={{
                 background: 'linear-gradient(135deg, #f97316, #fb923c)',
@@ -166,7 +166,7 @@ export default function LandingPage() {
             >
               50%
             </span>{' '}
-            na Cobrança pelo Uso da Água
+            na Cobrança pelo uso da Água com o AguaPay
           </h1>
           <p className="text-sky-300/70 text-lg leading-relaxed">
             Plataforma inteligente de{' '}
