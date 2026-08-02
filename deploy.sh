@@ -65,11 +65,16 @@ fi
 # ─────────────────────────────────────────────
 log "Sincronizando arquivos com o servidor $REMOTE_HOST..."
 rsync -avz --delete \
+  -e "ssh -o StrictHostKeyChecking=accept-new" \
   --exclude='.git' \
   --exclude='node_modules' \
   --exclude='.next' \
   --exclude='frontend/node_modules' \
   --exclude='frontend/.next' \
+  --exclude='.venv' \
+  --exclude='blog/.venv' \
+  --exclude='__pycache__' \
+  --exclude='*.pyc' \
   "$REPO_ROOT/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 ok "Arquivos sincronizados em ${REMOTE_DIR}"
 
@@ -77,7 +82,7 @@ ok "Arquivos sincronizados em ${REMOTE_DIR}"
 #  3. Build e deploy no servidor remoto
 # ─────────────────────────────────────────────
 log "Conectando ao servidor remoto e executando docker compose..."
-ssh "${REMOTE_USER}@${REMOTE_HOST}" bash <<EOF
+ssh -o StrictHostKeyChecking=accept-new "${REMOTE_USER}@${REMOTE_HOST}" bash <<EOF
   set -e
   echo "[remoto] Entrando em ${REMOTE_DIR}"
   cd "${REMOTE_DIR}"
